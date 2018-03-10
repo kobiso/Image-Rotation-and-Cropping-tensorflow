@@ -23,7 +23,7 @@ As test set does not include class labels and bounding boxes, validation set wil
 And training set will be divided with certain percentage (as you defined) into training set and validation set.
 Each data set (training, validation and test) will have iamges, labels and bounding box information.
 
-To convert Tiny ImageNet to TFRecords, set each requiring path in `build_tfrecords.ipynb` and run each cell.
+To convert Tiny ImageNet to TFRecords, set each requiring path in `build_tfrecords.ipynb` and run all cell.
 Then TFRecords files will be created in the designated path you defined.
 Note that you can set the validation ratio in the variable `VALIDATION_RATIO`.
 
@@ -34,6 +34,9 @@ After reading the TFRecords, the data will be saved in `read_data_dict` dictiona
 - **Example output of visualization**
 
 ![Example](/images/tfrecords_example.png)
+  
+## Reference
+- [TensowFlow example code for converting ImageNet data to TFRecords file format](https://github.com/tensorflow/models/blob/master/research/inception/inception/data/build_imagenet_data.py)
   
 ## Author
 Byung Soo Ko / kobiso62@gmail.com
