@@ -18,7 +18,7 @@ Considering this aspect, this implementation cab be used in two ways: for **clas
 Download the [Tiny ImageNet](https://tiny-imagenet.herokuapp.com/) in this link and unzip it.
 Set the path of the dataset on variable `TINY_IMAGENET_DIRECTORY` in `build_tfrecords.ipynb` file.
 
-## Converting to TFRecords
+## Convert to TFRecords
 As test set does not include class labels and bounding boxes, validation set will be used as test set in this implementation.
 And training set will be divided with certain percentage (as you defined) into training set and validation set.
 Each data set (training, validation and test) will have iamges, labels and bounding box information.
