@@ -143,29 +143,29 @@ def parse_example_proto(example_serialized):
     return image, location, label_one_hot
 
 def _rotate_and_crop(image, output_height, output_width, rotation_degree, do_crop):
-  """Rotate the given image with the given rotation degree and crop for the black edges if necessary
-  Args:
-    image: A `Tensor` representing an image of arbitrary size.
-    output_height: The height of the image after preprocessing.
-    output_width: The width of the image after preprocessing.
-    rotation_degree: The degree of rotation on the image.
-    do_crop: Do cropping if it is True.
+    """Rotate the given image with the given rotation degree and crop for the black edges if necessary
+    Args:
+        image: A `Tensor` representing an image of arbitrary size.
+        output_height: The height of the image after preprocessing.
+        output_width: The width of the image after preprocessing.
+        rotation_degree: The degree of rotation on the image.
+        do_crop: Do cropping if it is True.
 
-  Returns:
-    A rotated image.
-  """
+    Returns:
+        A rotated image.
+    """
   
-  # Rotate the given image with the given rotation degree
-  if rotation_degree != 0:
-    image = tf.contrib.image.rotate(image, math.radians(rotation_degree), interpolation='BILINEAR')
+    # Rotate the given image with the given rotation degree
+    if rotation_degree != 0:
+        image = tf.contrib.image.rotate(image, math.radians(rotation_degree), interpolation='BILINEAR')
       
-    # Center crop to ommit black noise on the edges
-    if do_crop == True:
-      lrr_width, lrr_height = _largest_rotated_rect(output_height, output_width, math.radians(rotation_degree))
-      resized_image = tf.image.central_crop(image, float(lrr_height)/output_height)    
-      image = tf.image.resize_images(resized_image, [output_height, output_width], method=tf.image.ResizeMethod.BILINEAR, align_corners=False)
+        # Center crop to ommit black noise on the edges
+        if do_crop == True:
+            lrr_width, lrr_height = _largest_rotated_rect(output_height, output_width, math.radians(rotation_degree))
+            resized_image = tf.image.central_crop(image, float(lrr_height)/output_height)    
+            image = tf.image.resize_images(resized_image, [output_height, output_width], method=tf.image.ResizeMethod.BILINEAR, align_corners=False)
     
-  return image
+    return image
 
 def _largest_rotated_rect(w, h, angle):
     """
