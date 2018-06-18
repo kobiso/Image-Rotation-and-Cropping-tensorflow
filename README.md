@@ -1,11 +1,16 @@
-# Tiny-ImageNet-to-TFRecords
-This is an implementation to convert [Tiny ImageNet](https://tiny-imagenet.herokuapp.com/) dataset from Standford CS231N to [TFRecords](https://www.tensorflow.org/programmers_guide/datasets).
+# Image Rotation and Cropping in TensorFlow
+This is an implementation and visualization of image rotation and cropping out black borders in TensorFlow.
+TensorFlow support only [image rotation function](https://www.tensorflow.org/api_docs/python/tf/contrib/image/rotate) `tf.contrib.image.rotate(images, angles, interpolation, name)`.
+However, when you rotate an image with this function, there will be black noise on each border as below.
 
-Tiny Imagenet has 200 classes.
-Each class has 500 training images, 50 validation images, and 50 test images.
-Training images and validation images have annotations including class labels and bounding boxes.
-But the test set does not include either class labels or bounding boxes.
-Considering this aspect, this implementation cab be used in two ways: for **classification** and for **object localization**.
+![Goal](/images/example1.png)
+
+So, we want to cropping out this black borders in TensorFlow, especially when the image is loaded as Tensor and it has to go through preprocessing phase.
+The implementation include example and visualization with [Tiny Imagenet](https://tiny-imagenet.herokuapp.com/).
+
+## Core Functions
+If you do not want to run the code or see the visualization, you can just copy and paste the core functions.
+In [*read_tfrecord.py* file](https://github.com/kobiso/Image-Rotation-and-Cropping-tensorflow/blob/master/read_tfrecord.py), `_rotate_and_crop(image, output_height, output_width, rotation_degree, do_crop)` and `_largest_rotated_rect(w, h, angle)` are core functions.
 
 ## Prerequisites
 - Python 3.4+
@@ -27,15 +32,24 @@ To convert Tiny ImageNet to TFRecords, set each requiring path in `build_tfrecor
 Then TFRecords files will be created in the designated path you defined.
 Note that you can set the validation ratio in the variable `VALIDATION_RATIO`.
 
-## Check and Visualize TFRecords File
-You can check and visualize TFRecords file with `check_tfrecords.ipynb`.
-After reading the TFRecords, the data will be saved in `read_data_dict` dictionary.
+## Visualize Original, Rotated and Cropped Image
+You can check and visualize TFRecords file in `check_tfrecords.ipynb`.
+In `read_tfrecord.read_tfrecord()` function, you can set `rotation_degree` and `do_crop` arguments to rotate and crop images.
 
-- **Example output of visualization**
+- **Original Image**
 
-![Example](/images/tfrecords_example.png)
-  
+![Example1](/images/origin.png)
+
+- **Rotated Image**
+
+![Example2](/images/rotation.png)
+
+- **Rotated and Cropped Image**
+
+![Example3](/images/crop.png)
+
 ## Reference
+- StackOverflow: [Rotate image and crop out black borders](https://stackoverflow.com/questions/16702966/rotate-image-and-crop-out-black-borders)
 - [TensowFlow example code for converting ImageNet data to TFRecords file format](https://github.com/tensorflow/models/blob/master/research/inception/inception/data/build_imagenet_data.py)
   
 ## Author
