@@ -7,7 +7,9 @@ import random
 import tensorflow as tf
 import numpy as np
 
-def read_tfrecord(tfrecord_train_dir, tfrecord_valid_dir, tfrecord_test_dir, batch_size=64, shuffle_buffer_size=5000):    
+import math
+
+def read_tfrecord(tfrecord_train_dir, tfrecord_valid_dir, tfrecord_test_dir, batch_size=64, shuffle_buffer_size=5000, rotation_degree=0, do_crop=False):    
     tfrecord_dir_dict = {'train': tfrecord_train_dir, 'valid': tfrecord_valid_dir, 'test': tfrecord_test_dir}
     tfrecord_list_dict = {}
     dataset_dict = {}
@@ -21,7 +23,9 @@ def read_tfrecord(tfrecord_train_dir, tfrecord_valid_dir, tfrecord_test_dir, bat
                                                             batch_size=batch_size,
                                                             prefetch_buffer_size=shuffle_buffer_size,
                                                             repeat=False,
-                                                            shuffle=True)
+                                                            shuffle=True,
+                                                            rotation_degree=rotation_degree,
+                                                            do_crop=do_crop)
 
         if data_type == 'train':
             iter_ = tf.data.Iterator.from_structure(dataset_dict[data_type].output_types, dataset_dict[data_type].output_shapes)
@@ -33,17 +37,17 @@ def read_tfrecord(tfrecord_train_dir, tfrecord_valid_dir, tfrecord_test_dir, bat
     
     return return_dict
 
-def create_tiny_image_dataset(path, batch_size=64, prefetch_buffer_size=5000, repeat=False, shuffle=False):
+def create_tiny_image_dataset(path, batch_size=64, prefetch_buffer_size=5000, repeat=False, shuffle=False, rotation_degree=0, do_crop=False):
     dataset = tf.data.TFRecordDataset(path)
     dataset = dataset.map(parse_example_proto)
-    dataset = dataset.map(preprocess_image)
+    dataset = dataset.map(lambda x,y,z: preprocess_image(image=x, location=y, label_one_hot=z, height=224, width=224, rotation_degree=rotation_degree, do_crop=do_crop))
     if repeat: dataset = dataset.repeat()
     if shuffle: dataset = dataset.shuffle(buffer_size=prefetch_buffer_size)
     dataset = dataset.batch(batch_size)
 
     return dataset
 
-def preprocess_image(image, location, label_one_hot, height=224, width=224):
+def preprocess_image(image, location, label_one_hot, height=224, width=224, rotation_degree=0, do_crop=False):
     """Prepare one image for evaluation.
 
     If height and width are specified it would output an image with that size by
@@ -71,6 +75,8 @@ def preprocess_image(image, location, label_one_hot, height=224, width=224):
     # the original image.
     #if central_fraction:
     #  image = tf.image.central_crop(image, central_fraction=central_fraction)
+    
+    image = _rotate_and_crop(image, height, width, rotation_degree, do_crop)
 
     #if height and width:
     # Resize the image to the specified height and width.
@@ -135,3 +141,65 @@ def parse_example_proto(example_serialized):
     #bbox = tf.transpose(bbox, [0, 2, 1])
 
     return image, location, label_one_hot
+
+def _rotate_and_crop(image, output_height, output_width, rotation_degree, do_crop):
+  """Rotate the given image with the given rotation degree and crop for the black edges if necessary
+  Args:
+    image: A `Tensor` representing an image of arbitrary size.
+    output_height: The height of the image after preprocessing.
+    output_width: The width of the image after preprocessing.
+    rotation_degree: The degree of rotation on the image.
+    do_crop: Do cropping if it is True.
+
+  Returns:
+    A rotated image.
+  """
+  
+  # Rotate the given image with the given rotation degree
+  if rotation_degree != 0:
+    image = tf.contrib.image.rotate(image, math.radians(rotation_degree), interpolation='BILINEAR')
+      
+    # Center crop to ommit black noise on the edges
+    if do_crop == True:
+      lrr_width, lrr_height = _largest_rotated_rect(output_height, output_width, math.radians(rotation_degree))
+      resized_image = tf.image.central_crop(image, float(lrr_height)/output_height)    
+      image = tf.image.resize_images(resized_image, [output_height, output_width], method=tf.image.ResizeMethod.BILINEAR, align_corners=False)
+    
+  return image
+
+def _largest_rotated_rect(w, h, angle):
+    """
+    Given a rectangle of size wxh that has been rotated by 'angle' (in
+    radians), computes the width and height of the largest possible
+    axis-aligned rectangle within the rotated rectangle.
+
+    Original JS code by 'Andri' and Magnus Hoff from Stack Overflow
+
+    Converted to Python by Aaron Snoswell
+
+    Source: http://stackoverflow.com/questions/16702966/rotate-image-and-crop-out-black-borders
+    """
+
+    quadrant = int(math.floor(angle / (math.pi / 2))) & 3
+    sign_alpha = angle if ((quadrant & 1) == 0) else math.pi - angle
+    alpha = (sign_alpha % math.pi + math.pi) % math.pi
+
+    bb_w = w * math.cos(alpha) + h * math.sin(alpha)
+    bb_h = w * math.sin(alpha) + h * math.cos(alpha)
+
+    gamma = math.atan2(bb_w, bb_w) if (w < h) else math.atan2(bb_w, bb_w)
+
+    delta = math.pi - alpha - gamma
+
+    length = h if (w < h) else w
+
+    d = length * math.cos(alpha)
+    a = d * math.sin(alpha) / math.sin(delta)
+
+    y = a * math.cos(gamma)
+    x = y * math.tan(gamma)
+
+    return (
+        bb_w - 2 * x,
+        bb_h - 2 * y
+    )
