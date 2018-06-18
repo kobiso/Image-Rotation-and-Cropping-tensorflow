@@ -3,7 +3,7 @@ This is an implementation and visualization of image rotation and cropping out b
 TensorFlow support only [image rotation function](https://www.tensorflow.org/api_docs/python/tf/contrib/image/rotate) `tf.contrib.image.rotate(images, angles, interpolation, name)`.
 However, when you rotate an image with this function, there will be black noise on each border as below.
 
-![Goal](/images/goal.jpg)
+![Goal](/images/example1.png)
 
 So, we want to cropping out this black borders in TensorFlow, especially when the image is loaded as Tensor and it has to go through preprocessing phase.
 The implementation include example and visualization with [Tiny Imagenet](https://tiny-imagenet.herokuapp.com/).
@@ -46,7 +46,7 @@ In `read_tfrecord.read_tfrecord()` function, you can set `rotation_degree` and `
 
 - **Rotated and Cropped Image**
 
-![Example3](/images/rotation and cropping.png)
+![Example3](/images/crop.png)
 
 ## Reference
 - StackOverflow: [Rotate image and crop out black borders](https://stackoverflow.com/questions/16702966/rotate-image-and-crop-out-black-borders)
