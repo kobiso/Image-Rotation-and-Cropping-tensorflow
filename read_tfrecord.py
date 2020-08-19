@@ -161,7 +161,7 @@ def _rotate_and_crop(image, output_height, output_width, rotation_degree, do_cro
       
         # Center crop to ommit black noise on the edges
         if do_crop == True:
-            lrr_width, lrr_height = _largest_rotated_rect(output_height, output_width, math.radians(rotation_degree))
+            lrr_width, lrr_height = _largest_rotated_rect(output_width, output_height, math.radians(rotation_degree))
             resized_image = tf.image.central_crop(image, float(lrr_height)/output_height)    
             image = tf.image.resize_images(resized_image, [output_height, output_width], method=tf.image.ResizeMethod.BILINEAR, align_corners=False)
     
